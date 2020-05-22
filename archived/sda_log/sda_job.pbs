@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#PBS -q express
+#PBS -l walltime=8:00:00
+#PBS -l storage=gdata/er4+scratch/er4
+#PBS -N job_sda_prep
+#PBS -P er4
+#PBS -l ncpus=16
+#PBS -l mem=128gb
+
+source /g/data/er4/jr6311/miniconda/bin/activate isimip
+
+python3 /g/data/er4/jr6311/unsw-bias-correction/sda.py

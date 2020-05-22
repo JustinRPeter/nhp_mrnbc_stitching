@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#PBS -q express
+#PBS -l walltime=20:00:00
+#PBS -l storage=gdata/er4+scratch/er4+gdata/eg3+scratch/eg3
+#PBS -N job_sda_out_stitch
+#PBS -P er4
+#PBS -l ncpus=16
+#PBS -l mem=128gb
+
+var=sfcWind
+gcm=ACCESS1-0
+rcp=historical
+input_filepath=/scratch/eg3/jp0715/HydroProj/data/unsw/sda_output/
+output_filepath=/scratch/er4/jr6311/mrnbc/final_outputs/sda_stitched_out
+
+source /g/data/er4/jr6311/miniconda/bin/activate isimip
+
+python3 /g/data/er4/jr6311/unsw-bias-correction/sda_output_stitch.py $input_filepath $var $gcm $rcp $output_filepath

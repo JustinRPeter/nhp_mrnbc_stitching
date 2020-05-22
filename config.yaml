@@ -1,0 +1,22 @@
+working_dir: /scratch/er4/jr6311/final_mrnbc
+source_data: /scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output
+CNRM-CM5:
+  initial_lon: 106.875
+  initial_lat: -4.902685
+  step_lon: 1.40625
+  step_lat: -1.40076385695359
+MIROC5:
+  initial_lon: 106.875
+  initial_lat: -4.902789
+  step_lon: 1.40625
+  step_lat: -1.4007633759776
+GFDL-ESM2M:
+  initial_lon: 106.25
+  initial_lat: -5.05618
+  step_lon: 2.5
+  step_lat: -2.02247191011236
+ACCESS1-0:
+  initial_lon: 106.875
+  initial_lat: -5.0
+  step_lon: 1.875
+  step_lat: -1.25
