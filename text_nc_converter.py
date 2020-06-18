@@ -20,12 +20,14 @@ def get_config():
         print('ERROR: Config file failed to open!')
         exit()
 
+
 def get_args():
     parser = argparse.ArgumentParser(description='Supply arguments to stitch ".dat" files into netCDF files.')
     parser.add_argument("model_id", help="Provide a model.")
     parser.add_argument("rcp", help="Provide the RCP")
     parser.add_argument("time_period", help="Provide a time span.")
-
+    parser.add_argument("flag", help="Specify whether processing for GCM or AWAP scale data.")
+    
     args = parser.parse_args()
     return args
 
@@ -38,9 +40,9 @@ def generate_working_dir(args, cfg):
         os.makedirs(cfg['working_dir'])
 
     if (args.time_period == 'gcmc'):
-        outpath = f'{cfg["working_dir"]}/bias_corrected/{args.model_id}/{args.time_period}'
+        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}'
     else:
-        outpath = f'{cfg["working_dir"]}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
+        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
 
     if not os.path.exists(outpath):
         os.makedirs(outpath)
@@ -48,11 +50,14 @@ def generate_working_dir(args, cfg):
 
 def get_files(args, cfg):
     try:
-        if (args.rcp == 'historical'):
-            # Line below will probably need to be updated...
-            file_list = glob.glob(f'{cfg["source_data"]}/{args.model_id}/rcp45/*/{args.time_period}*dat')
+        if (args.flag != 'awap'):
+            if (args.rcp == 'historical'):
+                # Line below will probably need to be updated...
+                file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/rcp45/*/{args.time_period}*dat')
+            else:
+                file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
         else:
-            file_list = glob.glob(f'{cfg["source_data"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
+                file_list = glob.glob(f'{cfg["source_data_awap"]}/{args.model_id}/{args.rcp}/{args.time_period}*dat')
     except:
         print('ERROR: Bad file path!')
     return file_list
@@ -110,6 +115,7 @@ def resolve_lat_lon(df, lon, lat):
     new_df = df.set_index(['lat', 'lon', 'time'])
     return new_df
 
+
 def multiprocess_files(file):
     cfg = get_config()
     args = get_args()
@@ -119,26 +125,26 @@ def multiprocess_files(file):
     ds = df2ds.to_xarray()
 
     if (args.time_period == 'gcmc'):
-        outpath = f'{cfg["working_dir"]}/bias_corrected/{args.model_id}/{args.time_period}'
+        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}'
     else:
-        outpath = f'{cfg["working_dir"]}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
+        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
 
     ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', engine='netcdf4')
 
 
 def stitch_ncfiles(args, cfg):
-    file_paths = glob.glob(f'{cfg["working_dir"]}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}/*')
+    file_paths = glob.glob(f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}/*')
     ds = xr.open_mfdataset(file_paths, combine='by_coords')
     ds.time.attrs['bounds'] = 'time_bnds'
     ds.time.encoding['dtype'] = np.dtype('double')
     ds = ds.transpose('time', 'lat', 'lon')
 
-    if not os.path.exists(f'{cfg["working_dir"]}/bias_corrected_stitched/{args.model_id}/'):
-        os.makedirs(f'{cfg["working_dir"]}/bias_corrected_stitched/{args.model_id}/')
+    if not os.path.exists(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/'):
+        os.makedirs(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/')
 
-    ds.to_netcdf(f'{cfg["working_dir"]}/bias_corrected_stitched/{args.model_id}/{args.model_id}_mrnbc-{args.rcp}_stitched_var.nc4')
+    ds.to_netcdf(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{args.model_id}_mrnbc-{args.rcp}_stitched_var.nc4')
     for var in ds.data_vars.values():
-        var.to_netcdf(f'{cfg["working_dir"]}/bias_corrected_stitched/{args.model_id}/{var.name}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4', unlimited_dims=['time'])
+        var.to_netcdf(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{var.name}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4', unlimited_dims=['time'])
 
 
 def subdivide_cdf(ds, lat_bnds, lon_bnds, path):
@@ -146,19 +152,19 @@ def subdivide_cdf(ds, lat_bnds, lon_bnds, path):
     new_ds.to_netcdf(f'{path}.nc4')
 
 
-def sda(args, cfg):
+def sda_prep(args, cfg):
     vars = ['pr', 'tasmin', 'tasmax', 'sfcWind', 'rsds']
     for i in vars:
-        ds = xr.open_dataset(f'{cfg["working_dir"]}/bias_corrected_stitched/{args.model_id}/{i}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4')
+        ds = xr.open_dataset(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{i}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4')
         
-        if not os.path.exists(f'{cfg["working_dir"]}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/'):
-            os.makedirs(f'{cfg["working_dir"]}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/')
+        if not os.path.exists(f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/'):
+            os.makedirs(f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/')
 
         for lats in reversed(range(1, ds.dims['lat']-1)):
                 for lons in range(1, ds.dims['lon'] - 1):
                     lonvals = [float(ds['lon'][lons -1]), float(ds['lon'][lons +1])]
                     latvals = [float(ds['lat'][lats -1]), float(ds['lat'][lats +1])]
-                    subdivide_cdf(ds, latvals, lonvals, f'{cfg["working_dir"]}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/{lons}_{(ds.dims["lat"] -1) - lats}')
+                    subdivide_cdf(ds, latvals, lonvals, f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/{lons}_{(ds.dims["lat"] -1) - lats}')
 
 class Coord:
     '''
@@ -183,7 +189,7 @@ if __name__ == "__main__":
     cfg = get_config()
     args = get_args()
     generate_working_dir(args, cfg)
-    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}')
+    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, FLAG:{args.flag}')
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         dat_files = get_files(args, cfg)
@@ -192,7 +198,8 @@ if __name__ == "__main__":
         print ("File splitting COMPLETE. \nStitching .nc files together...")
     
     stitch_ncfiles(args, cfg)
-    print("File stitching COMPLETE! \nBeginning SDA preparation...")
+    print("File stitching COMPLETE! \n[This only RUNS for FLAG:gcm]Beginning SDA preparation...")
 
-    sda_prep(args, cfg)
-    print("SDA prearation complete!")
+    if (args.flag == 'gcm'):
+        sda_prep(args, cfg)
+        print("SDA prearation complete!")

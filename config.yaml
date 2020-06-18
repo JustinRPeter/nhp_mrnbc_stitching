@@ -1,5 +1,6 @@
 working_dir: /scratch/er4/jr6311/final_mrnbc
-source_data: /scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output
+source_data_gcm: /scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output
+source_data_awap: /scratch/er4/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res
 CNRM-CM5:
   initial_lon: 106.875
   initial_lat: -4.902685
