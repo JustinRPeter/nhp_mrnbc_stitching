@@ -1,17 +1,18 @@
 #!/bin/bash
 
-#PBS -q express
-#PBS -l walltime=14:00:00
+#PBS -q normal
+#PBS -l walltime=48:00:00
 #PBS -l storage=gdata/er4+scratch/er4+scratch/eg3
 #PBS -N job_mrnbc
 #PBS -P er4
 #PBS -l ncpus=24
-#PBS -l mem=180gb
+#PBS -l mem=190gb
 
 gcm=ACCESS1-0
 rcp=rcp45
 per=bc_fut
+flag=awap
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
-python3 /g/data/er4/jr6311/unsw-bias-correction/awap_text_nc_converter.py ${gcm} ${rcp} ${per}
+python3 /g/data/er4/jr6311/unsw-bias-correction/text_nc_converter.py ${gcm} ${rcp} ${per} ${flag}

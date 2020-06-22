@@ -121,20 +121,22 @@ def multiprocess_files(file):
     args = get_args()
     df = get_dataframe(file)
     lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg)
-    df2ds = resolve_lat_lon(df, lon, lat)
-    ds = df2ds.to_xarray()
 
     if (args.time_period == 'gcmc'):
         outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}'
     else:
         outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
 
-    ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', engine='netcdf4')
+    if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
+        df2ds = resolve_lat_lon(df, lon, lat)
+        ds = df2ds.to_xarray()
+
+        ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', engine='netcdf4')
 
 
 def stitch_ncfiles(args, cfg):
     file_paths = glob.glob(f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}/*')
-    ds = xr.open_mfdataset(file_paths, combine='by_coords')
+    ds = xr.open_mfdataset(file_paths, chunks={'lat':10, 'lon':10}, parallel=True, engine='h5netcdf', combine='by_coords')
     ds.time.attrs['bounds'] = 'time_bnds'
     ds.time.encoding['dtype'] = np.dtype('double')
     ds = ds.transpose('time', 'lat', 'lon')
