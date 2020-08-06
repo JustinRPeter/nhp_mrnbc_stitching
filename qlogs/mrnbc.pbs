@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #PBS -q normal
 #PBS -l walltime=48:00:00
 #PBS -l storage=gdata/er4+scratch/er4+scratch/eg3

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#PBS -q hugemem
+#PBS -l walltime=10:00:00
+#PBS -l storage=gdata/er4+scratch/er4+scratch/eg3
+#PBS -N job_daskstitch
+#PBS -P er4
+#PBS -l ncpus=24
+#PBS -l mem=1440gb
+
+source /g/data/er4/jr6311/miniconda/bin/activate isimip
+
+python3 /g/data/er4/jr6311/unsw-bias-correction/dask_stitch.py

@@ -39,10 +39,7 @@ def generate_working_dir(args, cfg):
     if not os.path.exists(cfg['working_dir']):
         os.makedirs(cfg['working_dir'])
 
-    if (args.time_period == 'gcmc'):
-        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}'
-    else:
-        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
+    outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}'
 
     if not os.path.exists(outpath):
         os.makedirs(outpath)
@@ -51,19 +48,15 @@ def generate_working_dir(args, cfg):
 def get_files(args, cfg):
     try:
         if (args.flag != 'awap'):
-            if (args.rcp == 'historical'):
-                # Line below will probably need to be updated...
-                file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/rcp45/*/{args.time_period}*dat')
-            else:
-                file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
+            file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
         else:
-                file_list = glob.glob(f'{cfg["source_data_awap"]}/{args.model_id}/{args.rcp}/{args.time_period}*dat')
+            file_list = glob.glob(f'{cfg["source_data_awap"]}/{args.model_id}/{args.rcp}/{args.time_period}*dat')
     except:
         print('ERROR: Bad file path!')
     return file_list
 
 
-def get_lat_lon_step(df, gcm, cfg):
+def get_lat_lon_step(df, gcm, cfg, flag):
     '''
     Using the underscore as a delimiter, use the files name as an input with the first value indicating lon and the following value indicating lat.
     '''
@@ -73,8 +66,13 @@ def get_lat_lon_step(df, gcm, cfg):
     ilon = float (ilon)
     ilat = float (ilat)
 
-    initial = Coord(lon = cfg[gcm]['initial_lon'], lat = cfg[gcm]['initial_lat'])
-    step = Coord(lon=cfg[gcm]['step_lon'], lat=cfg[gcm]['step_lat'])
+    if (flag == 'awap'):
+        ckey = cfg['AWAP']
+    else:
+        ckey = cfg[gcm]
+
+    initial = Coord(lon = ckey['initial_lon'], lat = ckey['initial_lat'])
+    step = Coord(lon=ckey['step_lon'], lat=ckey['step_lat'])
 
     nstep = Coord(lon=ilon, lat=ilat)
     offset = initial.offset(step, nstep)
@@ -120,22 +118,24 @@ def multiprocess_files(file):
     cfg = get_config()
     args = get_args()
     df = get_dataframe(file)
-    lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg)
+    lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.flag)
 
-    if (args.time_period == 'gcmc'):
-        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}'
-    else:
-        outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}'
+    outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}'
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
         df2ds = resolve_lat_lon(df, lon, lat)
         ds = df2ds.to_xarray()
-
-        ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', engine='netcdf4')
+        comp = dict(zlib=True, complevel=9)
+        encoding = {var: comp for var in ds.data_vars}
+        ds['pr'] /= 86400
+        ds['rsds'] /= (86400/1000000)
+        ds['tasmax'] += 273.15
+        ds['tasmin'] += 273.15
+        ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', encoding=encoding, engine='netcdf4')
 
 
 def stitch_ncfiles(args, cfg):
-    file_paths = glob.glob(f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.time_period}_{args.rcp}/*')
+    file_paths = glob.glob(f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}/*')
     ds = xr.open_mfdataset(file_paths, chunks={'lat':10, 'lon':10}, parallel=True, engine='h5netcdf', combine='by_coords')
     ds.time.attrs['bounds'] = 'time_bnds'
     ds.time.encoding['dtype'] = np.dtype('double')
@@ -199,9 +199,9 @@ if __name__ == "__main__":
             continue
         print ("File splitting COMPLETE. \nStitching .nc files together...")
     
-    stitch_ncfiles(args, cfg)
-    print("File stitching COMPLETE! \n[This only RUNS for FLAG:gcm]Beginning SDA preparation...")
+    # stitch_ncfiles(args, cfg)
+    # print("File stitching COMPLETE! \n[This only RUNS for FLAG:gcm]Beginning SDA preparation...")
 
-    if (args.flag == 'gcm'):
-        sda_prep(args, cfg)
-        print("SDA prearation complete!")
+    # if (args.flag == 'gcm'):
+    #     sda_prep(args, cfg)
+    #     print("SDA prearation complete!")

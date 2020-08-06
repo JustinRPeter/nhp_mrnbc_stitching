@@ -1,3 +1,8 @@
+start=( 0 50 100 150 200 250 )
+end=( 50 100 150 200 250 281 )
+
+for (( ii=0;ii<=7;ii++ )); do
+cat >> temp_submission_script <<EOF
 #!/bin/bash
 
 #PBS -q hugemem
@@ -15,4 +20,11 @@ flag=awap
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
-python3 /g/data/er4/jr6311/unsw-bias-correction/text_nc_converter.py ${gcm} ${rcp} ${per} ${flag}
+python3 /g/data/er4/jr6311/unsw-bias-correction/awap_stitch.py ${start[$ii]} ${end[$ii]}
+
+EOF
+
+qsub temp_submission_script
+rm temp_submission_script
+sleep 2
+done
