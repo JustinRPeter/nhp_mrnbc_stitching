@@ -7,7 +7,9 @@
 #PBS -P er4
 #PBS -l ncpus=24
 #PBS -l mem=1440gb
+#PBS -l wd
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
-python3 /g/data/er4/jr6311/unsw-bias-correction/dask_stitch.py
+cd ../
+python3 dask_stitch.py
