@@ -6,9 +6,7 @@ import yaml
 from functools import partial
 
 import pandas as pd
-import xarray as xr
 import numpy as np
-from xclim import subset
 
 
 def get_config():
