@@ -17,4 +17,8 @@ scale=awap
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 text_nc_converter.py ${gcm} ${rcp} ${per} ${scale}
+python3 text_nc_converter.py \
+    --model_id ${gcm} \
+    --rcp ${rcp} \
+    --time_period ${per} \
+    --scale ${scale}

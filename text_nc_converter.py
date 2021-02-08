@@ -23,10 +23,10 @@ def get_config():
 
 def get_args():
     parser = argparse.ArgumentParser(description='Supply arguments to stitch ".dat" files into netCDF files.')
-    parser.add_argument("model_id", help="Provide a model.")
-    parser.add_argument("rcp", help="Provide the RCP")
-    parser.add_argument("time_period", help="Provide a time span.")
-    parser.add_argument("scale", choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
+    parser.add_argument("--model_id", required=True, help="Provide a model.")
+    parser.add_argument("--rcp", required=True, help="Provide the RCP")
+    parser.add_argument("--time_period", required=True, help="Provide a time span.")
+    parser.add_argument("--scale", required=True, choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
     
     args = parser.parse_args()
     return args
