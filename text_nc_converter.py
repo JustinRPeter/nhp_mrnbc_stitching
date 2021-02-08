@@ -81,16 +81,6 @@ def get_lat_lon_step(df, gcm, cfg, flag):
     return offset.lon, offset.lat, ilon, ilat
 
 
-def get_gcm(dictionary):
-    '''
-    Return value of selected GCM dictionary
-    '''
-    for key, val in dictionary.items():
-        if val:
-            return key
-    raise SystemExit("ERROR: Script quitting!\n::No GCM value set to TRUE in the config!")
-
-
 def get_dataframe(file):
     '''
     Open each file as a Dataframe in pandas.
@@ -136,40 +126,6 @@ def process_file(cfg, args, file):
         ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', encoding=encoding, engine='netcdf4')
 
 
-def stitch_ncfiles(args, cfg):
-    file_paths = glob.glob(f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}/*')
-    ds = xr.open_mfdataset(file_paths, chunks={'lat':10, 'lon':10}, parallel=True, engine='h5netcdf', combine='by_coords')
-    ds.time.attrs['bounds'] = 'time_bnds'
-    ds.time.encoding['dtype'] = np.dtype('double')
-    ds = ds.transpose('time', 'lat', 'lon')
-
-    if not os.path.exists(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/'):
-        os.makedirs(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/')
-
-    ds.to_netcdf(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{args.model_id}_mrnbc-{args.rcp}_stitched_var.nc4')
-    for var in ds.data_vars.values():
-        var.to_netcdf(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{var.name}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4', unlimited_dims=['time'])
-
-
-def subdivide_cdf(ds, lat_bnds, lon_bnds, path):
-    new_ds = subset.subset_bbox(ds,lat_bnds=lat_bnds,lon_bnds=lon_bnds)
-    new_ds.to_netcdf(f'{path}.nc4')
-
-
-def sda_prep(args, cfg):
-    vars = ['pr', 'tasmin', 'tasmax', 'sfcWind', 'rsds']
-    for i in vars:
-        ds = xr.open_dataset(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{i}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4')
-        
-        if not os.path.exists(f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/'):
-            os.makedirs(f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/')
-
-        for lats in reversed(range(1, ds.dims['lat']-1)):
-                for lons in range(1, ds.dims['lon'] - 1):
-                    lonvals = [float(ds['lon'][lons -1]), float(ds['lon'][lons +1])]
-                    latvals = [float(ds['lat'][lats -1]), float(ds['lat'][lats +1])]
-                    subdivide_cdf(ds, latvals, lonvals, f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/{lons}_{(ds.dims["lat"] -1) - lats}')
-
 class Coord:
     '''
     Class which allows us to create an object that has a base lon and lat.
@@ -207,10 +163,3 @@ if __name__ == "__main__":
             continue
     
     print ("Text to .nc conversion complete.")
-    
-    # stitch_ncfiles(args, cfg)
-    # print("File stitching COMPLETE! \n[This only RUNS for FLAG:gcm]Beginning SDA preparation...")
-
-    # if (args.flag == 'gcm'):
-    #     sda_prep(args, cfg)
-    #     print("SDA prearation complete!")
