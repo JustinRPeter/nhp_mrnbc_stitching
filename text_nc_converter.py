@@ -34,7 +34,7 @@ def get_args():
     return args
 
 
-def get_output_dir(args, cfg):
+def get_output_dir(args):
     return os.path.join(
         args.output_base_dir,
         'text_to_nc',
@@ -43,11 +43,11 @@ def get_output_dir(args, cfg):
         args.rcp)
 
 
-def create_output_dir(args, cfg):
+def create_output_dir(args):
     '''
     Create output dir if it does not exist
     '''
-    outpath = get_output_dir(args, cfg)
+    outpath = get_output_dir(args)
     if not os.path.exists(outpath):
         os.makedirs(outpath)
 
@@ -115,7 +115,7 @@ def process_file(cfg, args, file):
     df = get_dataframe(file)
     lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.scale)
 
-    outpath = get_output_dir(args, cfg)
+    outpath = get_output_dir(args)
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
         df2ds = resolve_lat_lon(df, lon, lat)
@@ -151,7 +151,7 @@ class Coord:
 if __name__ == "__main__":
     cfg = get_config()
     args = get_args()
-    create_output_dir(args, cfg)
+    create_output_dir(args)
     print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, SCALE:{args.scale}')
 
     # In order to use executor.map to apply the process_file() function for
