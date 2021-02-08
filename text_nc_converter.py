@@ -27,6 +27,7 @@ def get_args():
     parser.add_argument("--rcp", required=True, help="Provide the RCP")
     parser.add_argument("--time_period", required=True, help="Provide a time span.")
     parser.add_argument("--scale", required=True, choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
+    parser.add_argument("--input_base_dir", required=True, help"The base directory where to find input .dat files. The subfolder structure is assumed.")
     parser.add_argument("--output_base_dir", required=True, help"The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
     
     args = parser.parse_args()
@@ -51,12 +52,9 @@ def create_output_dir(args, cfg):
         os.makedirs(outpath)
 
 
-def get_files(args, cfg):
+def get_files(args):
     try:
-        if (args.scale != 'awap'):
-            file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
-        else:
-            file_list = glob.glob(f'{cfg["source_data_awap"]}/{args.model_id}/{args.rcp}/{args.time_period}*dat')
+        file_list = glob.glob(f'{args.input_base_dir}/{args.model_id}/{args.rcp}/**/{args.time_period}*dat', recursive=True)
     except:
         print('ERROR: Bad file path!')
     return file_list
@@ -163,7 +161,7 @@ if __name__ == "__main__":
     process_file_wrapped_function = partial(process_file, cfg, args)
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        dat_files = get_files(args, cfg)
+        dat_files = get_files(args)
         for open_file, _ in zip(dat_files, executor.map(process_file_wrapped_function, dat_files)):
             continue
     
