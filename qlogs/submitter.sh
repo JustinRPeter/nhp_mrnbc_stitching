@@ -16,13 +16,11 @@ cat >> temp_submission_script <<EOF
 
 gcm=CNRM-CM5
 rcp=rcp45
-per=bc_fut
-flag=awap
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 awap_stitch.py ${start[$ii]} ${end[$ii]}
+python3 awap_stitch.py --gcm ${gcm} --rcp ${rcp} --start ${start[$ii]} --end ${end[$ii]}
 
 EOF
 

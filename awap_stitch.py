@@ -11,10 +11,10 @@ from multiprocessing import Pool
 
 def get_args():
     parser = argparse.ArgumentParser(description='Supply arguments to create subset of stitched netCDF files.')
-    parser.add_argument("gcm", help="Provide a model.")
-    parser.add_argument("rcp", help="Provide a rcp.")
-    parser.add_argument("start", help="Provide a start integer.", type=int)
-    parser.add_argument("end", help="Provide end integer", type=int)
+    parser.add_argument("--gcm", required=True, help="Provide a model.")
+    parser.add_argument("--rcp", required=True, help="Provide a rcp.")
+    parser.add_argument("--start", required=True, help="Provide a start integer.", type=int)
+    parser.add_argument("--end", required=True, help="Provide end integer", type=int)
     
     args = parser.parse_args()
     return args
