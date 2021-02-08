@@ -3,6 +3,7 @@ import concurrent.futures
 import glob
 import os
 import yaml
+from functools import partial
 
 import pandas as pd
 import xarray as xr
@@ -114,9 +115,10 @@ def resolve_lat_lon(df, lon, lat):
     return new_df
 
 
-def multiprocess_files(file):
-    cfg = get_config()
-    args = get_args()
+def process_file(cfg, args, file):
+    '''
+    Function to process a single file
+    '''
     df = get_dataframe(file)
     lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.flag)
 
@@ -193,11 +195,18 @@ if __name__ == "__main__":
     generate_working_dir(args, cfg)
     print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, FLAG:{args.flag}')
 
+    # In order to use executor.map to apply the process_file() function for
+    # each file, whilst also taking more than one argument (i.e. cfg and args),
+    # need to wrap in "partial" function. Lambda should also work, but for some
+    # reason, get an error that lambda is not picklable, but partial function works.
+    process_file_wrapped_function = partial(process_file, cfg, args)
+
     with concurrent.futures.ProcessPoolExecutor() as executor:
         dat_files = get_files(args, cfg)
-        for open_file, _ in zip(dat_files, executor.map(multiprocess_files, dat_files)):
+        for open_file, _ in zip(dat_files, executor.map(process_file_wrapped_function, dat_files)):
             continue
-        print ("File splitting COMPLETE. \nStitching .nc files together...")
+    
+    print ("Text to .nc conversion complete.")
     
     # stitch_ncfiles(args, cfg)
     # print("File stitching COMPLETE! \n[This only RUNS for FLAG:gcm]Beginning SDA preparation...")
