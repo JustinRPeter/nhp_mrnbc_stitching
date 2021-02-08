@@ -27,20 +27,26 @@ def get_args():
     parser.add_argument("--rcp", required=True, help="Provide the RCP")
     parser.add_argument("--time_period", required=True, help="Provide a time span.")
     parser.add_argument("--scale", required=True, choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
+    parser.add_argument("--output_base_dir", required=True, help"The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
     
     args = parser.parse_args()
     return args
 
 
-def generate_working_dir(args, cfg):
-    '''
-    Build the filepath for the working directory as specified in the configuration file if they do not exist
-    '''
-    if not os.path.exists(cfg['working_dir']):
-        os.makedirs(cfg['working_dir'])
+def get_output_dir(args, cfg):
+    return os.path.join(
+        args.output_base_dir,
+        'text_to_nc',
+        f'{args.scale}_scale',
+        args.model_id,
+        args.rcp)
 
-    outpath = f'{cfg["working_dir"]}/{args.scale}/bias_corrected/{args.model_id}/{args.rcp}'
 
+def create_output_dir(args, cfg):
+    '''
+    Create output dir if it does not exist
+    '''
+    outpath = get_output_dir(args, cfg)
     if not os.path.exists(outpath):
         os.makedirs(outpath)
 
@@ -111,7 +117,7 @@ def process_file(cfg, args, file):
     df = get_dataframe(file)
     lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.scale)
 
-    outpath = f'{cfg["working_dir"]}/{args.scale}/bias_corrected/{args.model_id}/{args.rcp}'
+    outpath = get_output_dir(args, cfg)
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
         df2ds = resolve_lat_lon(df, lon, lat)
@@ -147,7 +153,7 @@ class Coord:
 if __name__ == "__main__":
     cfg = get_config()
     args = get_args()
-    generate_working_dir(args, cfg)
+    create_output_dir(args, cfg)
     print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, SCALE:{args.scale}')
 
     # In order to use executor.map to apply the process_file() function for

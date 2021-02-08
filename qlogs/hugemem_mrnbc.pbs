@@ -13,6 +13,7 @@ gcm=CNRM-CM5
 rcp=rcp45
 per=bc_fut
 scale=awap
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
@@ -21,4 +22,5 @@ python3 text_nc_converter.py \
     --model_id ${gcm} \
     --rcp ${rcp} \
     --time_period ${per} \
-    --scale ${scale}
+    --scale ${scale} \
+    --output_base_dir ${output_base_dir}
