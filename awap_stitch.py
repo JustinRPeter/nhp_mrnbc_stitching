@@ -36,19 +36,19 @@ def pre_stitch(i):
     cfg = get_config()
 
     if i == 0:
-        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i}_*.nc')
-        l2 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i + 1}_*.nc')
-        l3 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i + 2}_*.nc')
+        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i}_*.nc')
+        l2 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i + 1}_*.nc')
+        l3 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i + 2}_*.nc')
         flist = l1 + l2 + l3
         
     elif i == 280:
-        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i*3}_*.nc')
+        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3}_*.nc')
         flist = l1
 
     else:
-        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i*3}_*.nc')
-        l2 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i*3 + 1}_*.nc')
-        l3 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{gcm}/{rcp}/{i*3 + 2}_*.nc')
+        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3}_*.nc')
+        l2 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3 + 1}_*.nc')
+        l3 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3 + 2}_*.nc')
         flist = l1 + l2 + l3
 
     print('number', i)
