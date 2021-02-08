@@ -12,9 +12,9 @@
 gcm=CNRM-CM5
 rcp=rcp45
 per=bc_fut
-flag=awap
+scale=awap
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 text_nc_converter.py ${gcm} ${rcp} ${per} ${flag}
+python3 text_nc_converter.py ${gcm} ${rcp} ${per} ${scale}

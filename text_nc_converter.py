@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 
 
+
 def get_config():
     """Return config file as an object"""
     try:
@@ -25,7 +26,7 @@ def get_args():
     parser.add_argument("model_id", help="Provide a model.")
     parser.add_argument("rcp", help="Provide the RCP")
     parser.add_argument("time_period", help="Provide a time span.")
-    parser.add_argument("flag", help="Specify whether processing for GCM or AWAP scale data.")
+    parser.add_argument("scale", choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
     
     args = parser.parse_args()
     return args
@@ -38,7 +39,7 @@ def generate_working_dir(args, cfg):
     if not os.path.exists(cfg['working_dir']):
         os.makedirs(cfg['working_dir'])
 
-    outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}'
+    outpath = f'{cfg["working_dir"]}/{args.scale}/bias_corrected/{args.model_id}/{args.rcp}'
 
     if not os.path.exists(outpath):
         os.makedirs(outpath)
@@ -46,7 +47,7 @@ def generate_working_dir(args, cfg):
 
 def get_files(args, cfg):
     try:
-        if (args.flag != 'awap'):
+        if (args.scale != 'awap'):
             file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
         else:
             file_list = glob.glob(f'{cfg["source_data_awap"]}/{args.model_id}/{args.rcp}/{args.time_period}*dat')
@@ -55,7 +56,7 @@ def get_files(args, cfg):
     return file_list
 
 
-def get_lat_lon_step(df, gcm, cfg, flag):
+def get_lat_lon_step(df, gcm, cfg, scale):
     '''
     Using the underscore as a delimiter, use the files name as an input with the first value indicating lon and the following value indicating lat.
     '''
@@ -65,7 +66,7 @@ def get_lat_lon_step(df, gcm, cfg, flag):
     ilon = float (ilon)
     ilat = float (ilat)
 
-    if (flag == 'awap'):
+    if (scale == 'awap'):
         ckey = cfg['AWAP']
     else:
         ckey = cfg[gcm]
@@ -108,9 +109,9 @@ def process_file(cfg, args, file):
     Function to process a single file
     '''
     df = get_dataframe(file)
-    lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.flag)
+    lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.scale)
 
-    outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}'
+    outpath = f'{cfg["working_dir"]}/{args.scale}/bias_corrected/{args.model_id}/{args.rcp}'
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
         df2ds = resolve_lat_lon(df, lon, lat)
@@ -147,7 +148,7 @@ if __name__ == "__main__":
     cfg = get_config()
     args = get_args()
     generate_working_dir(args, cfg)
-    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, FLAG:{args.flag}')
+    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, SCALE:{args.scale}')
 
     # In order to use executor.map to apply the process_file() function for
     # each file, whilst also taking more than one argument (i.e. cfg and args),
