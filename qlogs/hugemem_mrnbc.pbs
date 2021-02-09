@@ -7,12 +7,22 @@
 #PBS -P er4
 #PBS -l ncpus=26
 #PBS -l mem=1440gb
+#PBS -l wd
 
 gcm=CNRM-CM5
 rcp=rcp45
 per=bc_fut
-flag=awap
+scale=awap
+input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
-python3 /g/data/er4/jr6311/unsw-bias-correction/text_nc_converter.py ${gcm} ${rcp} ${per} ${flag}
+cd ../
+python3 text_nc_converter.py \
+    --model_id ${gcm} \
+    --rcp ${rcp} \
+    --time_period ${per} \
+    --scale ${scale} \
+    --input_base_dir ${input_base_dir} \
+    --output_base_dir ${output_base_dir}

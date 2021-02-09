@@ -3,11 +3,11 @@ import concurrent.futures
 import glob
 import os
 import yaml
+from functools import partial
 
 import pandas as pd
-import xarray as xr
 import numpy as np
-from xclim import subset
+
 
 
 def get_config():
@@ -23,40 +23,42 @@ def get_config():
 
 def get_args():
     parser = argparse.ArgumentParser(description='Supply arguments to stitch ".dat" files into netCDF files.')
-    parser.add_argument("model_id", help="Provide a model.")
-    parser.add_argument("rcp", help="Provide the RCP")
-    parser.add_argument("time_period", help="Provide a time span.")
-    parser.add_argument("flag", help="Specify whether processing for GCM or AWAP scale data.")
+    parser.add_argument("--model_id", required=True, help="Provide a model.")
+    parser.add_argument("--rcp", required=True, help="Provide the RCP")
+    parser.add_argument("--time_period", required=True, help="Provide a time span.")
+    parser.add_argument("--scale", required=True, choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
+    parser.add_argument("--input_base_dir", required=True, help"The base directory where to find input .dat files. The subfolder structure is assumed.")
+    parser.add_argument("--output_base_dir", required=True, help"The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
     
     args = parser.parse_args()
     return args
 
 
-def generate_working_dir(args, cfg):
-    '''
-    Build the filepath for the working directory as specified in the configuration file if they do not exist
-    '''
-    if not os.path.exists(cfg['working_dir']):
-        os.makedirs(cfg['working_dir'])
+def get_output_dir(args):
+    return os.path.join(
+        args.output_base_dir,
+        args.model_id,
+        args.rcp)
 
-    outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}'
 
+def create_output_dir(args):
+    '''
+    Create output dir if it does not exist
+    '''
+    outpath = get_output_dir(args)
     if not os.path.exists(outpath):
         os.makedirs(outpath)
 
 
-def get_files(args, cfg):
+def get_files(args):
     try:
-        if (args.flag != 'awap'):
-            file_list = glob.glob(f'{cfg["source_data_gcm"]}/{args.model_id}/{args.rcp}/*/{args.time_period}*dat')
-        else:
-            file_list = glob.glob(f'{cfg["source_data_awap"]}/{args.model_id}/{args.rcp}/{args.time_period}*dat')
+        file_list = glob.glob(f'{args.input_base_dir}/{args.model_id}/{args.rcp}/**/{args.time_period}*dat', recursive=True)
     except:
         print('ERROR: Bad file path!')
     return file_list
 
 
-def get_lat_lon_step(df, gcm, cfg, flag):
+def get_lat_lon_step(df, gcm, cfg, scale):
     '''
     Using the underscore as a delimiter, use the files name as an input with the first value indicating lon and the following value indicating lat.
     '''
@@ -66,7 +68,7 @@ def get_lat_lon_step(df, gcm, cfg, flag):
     ilon = float (ilon)
     ilat = float (ilat)
 
-    if (flag == 'awap'):
+    if (scale == 'awap'):
         ckey = cfg['AWAP']
     else:
         ckey = cfg[gcm]
@@ -78,16 +80,6 @@ def get_lat_lon_step(df, gcm, cfg, flag):
     offset = initial.offset(step, nstep)
 
     return offset.lon, offset.lat, ilon, ilat
-
-
-def get_gcm(dictionary):
-    '''
-    Return value of selected GCM dictionary
-    '''
-    for key, val in dictionary.items():
-        if val:
-            return key
-    raise SystemExit("ERROR: Script quitting!\n::No GCM value set to TRUE in the config!")
 
 
 def get_dataframe(file):
@@ -114,13 +106,14 @@ def resolve_lat_lon(df, lon, lat):
     return new_df
 
 
-def multiprocess_files(file):
-    cfg = get_config()
-    args = get_args()
+def process_file(cfg, args, file):
+    '''
+    Function to process a single file
+    '''
     df = get_dataframe(file)
-    lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.flag)
+    lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.scale)
 
-    outpath = f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}'
+    outpath = get_output_dir(args)
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
         df2ds = resolve_lat_lon(df, lon, lat)
@@ -133,40 +126,6 @@ def multiprocess_files(file):
         ds['tasmin'] += 273.15
         ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', encoding=encoding, engine='netcdf4')
 
-
-def stitch_ncfiles(args, cfg):
-    file_paths = glob.glob(f'{cfg["working_dir"]}/{args.flag}/bias_corrected/{args.model_id}/{args.rcp}/*')
-    ds = xr.open_mfdataset(file_paths, chunks={'lat':10, 'lon':10}, parallel=True, engine='h5netcdf', combine='by_coords')
-    ds.time.attrs['bounds'] = 'time_bnds'
-    ds.time.encoding['dtype'] = np.dtype('double')
-    ds = ds.transpose('time', 'lat', 'lon')
-
-    if not os.path.exists(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/'):
-        os.makedirs(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/')
-
-    ds.to_netcdf(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{args.model_id}_mrnbc-{args.rcp}_stitched_var.nc4')
-    for var in ds.data_vars.values():
-        var.to_netcdf(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{var.name}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4', unlimited_dims=['time'])
-
-
-def subdivide_cdf(ds, lat_bnds, lon_bnds, path):
-    new_ds = subset.subset_bbox(ds,lat_bnds=lat_bnds,lon_bnds=lon_bnds)
-    new_ds.to_netcdf(f'{path}.nc4')
-
-
-def sda_prep(args, cfg):
-    vars = ['pr', 'tasmin', 'tasmax', 'sfcWind', 'rsds']
-    for i in vars:
-        ds = xr.open_dataset(f'{cfg["working_dir"]}/{args.flag}/bias_corrected_stitched/{args.model_id}/{i}_{args.model_id}_{args.rcp}_mrnbc_stitched.nc4')
-        
-        if not os.path.exists(f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/'):
-            os.makedirs(f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/')
-
-        for lats in reversed(range(1, ds.dims['lat']-1)):
-                for lons in range(1, ds.dims['lon'] - 1):
-                    lonvals = [float(ds['lon'][lons -1]), float(ds['lon'][lons +1])]
-                    latvals = [float(ds['lat'][lats -1]), float(ds['lat'][lats +1])]
-                    subdivide_cdf(ds, latvals, lonvals, f'{cfg["working_dir"]}/{args.flag}/sda_prep/{args.model_id}/{i}_mrnbc_{args.rcp}/{lons}_{(ds.dims["lat"] -1) - lats}')
 
 class Coord:
     '''
@@ -190,18 +149,18 @@ class Coord:
 if __name__ == "__main__":
     cfg = get_config()
     args = get_args()
-    generate_working_dir(args, cfg)
-    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, FLAG:{args.flag}')
+    create_output_dir(args)
+    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, SCALE:{args.scale}')
+
+    # In order to use executor.map to apply the process_file() function for
+    # each file, whilst also taking more than one argument (i.e. cfg and args),
+    # need to wrap in "partial" function. Lambda should also work, but for some
+    # reason, get an error that lambda is not picklable, but partial function works.
+    process_file_wrapped_function = partial(process_file, cfg, args)
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        dat_files = get_files(args, cfg)
-        for open_file, _ in zip(dat_files, executor.map(multiprocess_files, dat_files)):
+        dat_files = get_files(args)
+        for open_file, _ in zip(dat_files, executor.map(process_file_wrapped_function, dat_files)):
             continue
-        print ("File splitting COMPLETE. \nStitching .nc files together...")
     
-    # stitch_ncfiles(args, cfg)
-    # print("File stitching COMPLETE! \n[This only RUNS for FLAG:gcm]Beginning SDA preparation...")
-
-    # if (args.flag == 'gcm'):
-    #     sda_prep(args, cfg)
-    #     print("SDA prearation complete!")
+    print ("Text to .nc conversion complete.")
