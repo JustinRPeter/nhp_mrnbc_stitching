@@ -19,18 +19,14 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
 
-    da.config.config
-    da.config.set({'temporary-directory': '/scratch/er4/jr6311/dask_temp'})
-    da.config.set({'dataframe':{'shuffle-compression': 'Zlib'}})
-    client = Client(n_workers=20)
-
+    client = Client(n_workers=8)
     print(client)
 
     flist = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/*.nc*')
-    ds = xr.open_mfdataset(flist, chunks={'lat':10, 'lon':10}, combine='by_coords')
-    ds = ds.chunk(chunks={'time':100,'lat':681,'lon':841})
+    ds = xr.open_mfdataset(flist, chunks={'lat':681, 'lon':841}, parallel=True, combine='by_coords')
+    ds = ds.chunk(chunks={'time':1000,'lat':681,'lon':841})
     for var in ds.data_vars.values():
-        comp = dict(zlib=True, complevel=9)
+        comp = dict(dtype="float32", zlib=False, complevel=9)
         encoding = {var.name: comp}
 
         outdir = os.path.join(
