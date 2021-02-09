@@ -9,7 +9,16 @@
 #PBS -l mem=1440gb
 #PBS -l wd
 
+gcm=ACCESS1-0
+rcp=rcp45
+input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/pre_stitch
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/final_stitch
+
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 dask_stitch.py
+python3 dask_stitch.py \
+    --gcm ${gcm} \
+    --rcp ${rcp} \
+    --input_base_dir ${input_base_dir} \
+    --output_base_dir ${output_base_dir}
