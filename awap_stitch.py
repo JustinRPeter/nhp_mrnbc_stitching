@@ -41,12 +41,12 @@ def pre_stitch(args, i):
         flist = l1 + l2 + l3
 
     print('number', i)
-    ds = xr.open_mfdataset(flist, chunks={'lat':10, 'lon':10}, combine='by_coords')
+    ds = xr.open_mfdataset(flist, chunks={'lat':5, 'lon':841}, combine='by_coords')
     ds.time.attrs['bounds'] = 'time_bnds'
     ds.time.encoding['dtype'] = np.dtype('double')
     ds = ds.transpose('time', 'lat', 'lon')
     ds = ds.chunk(chunks={'time':100,'lat':681,'lon':841})
-    comp = dict(zlib=True, complevel=9)
+    comp = dict(dtype="float32", zlib=True, complevel=9)
     encoding = {var: comp for var in ds.data_vars}
     
     outdir = os.path.join(
