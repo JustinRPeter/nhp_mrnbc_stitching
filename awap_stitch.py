@@ -2,6 +2,7 @@ import argparse
 import glob
 import os
 import yaml
+from functools import partial
 
 import xarray as xr
 import numpy as np
@@ -22,9 +23,7 @@ def get_args():
     return args
 
 
-def pre_stitch(i):
-    args = get_args()
-
+def pre_stitch(args, i):
     if i == 0:
         l1 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i}_*.nc')
         l2 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i + 1}_*.nc')
@@ -68,5 +67,10 @@ def pre_stitch(i):
 if __name__ == "__main__":
     args = get_args()
     print(f'Running range {args.start}, {args.end}')
+
+    # Wrap the pre_stitch() function we want to use for multiprocessing
+    # in a partial func, so that we can pass additional args to it.
+    pre_stitched_wrapped_function = partial(pre_stitch, args)
+
     with Pool() as p:
-        p.map(pre_stitch, range(args.start, args.end))
+        p.map(pre_stitched_wrapped_function, range(args.start, args.end))
