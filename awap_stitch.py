@@ -15,40 +15,30 @@ def get_args():
     parser.add_argument("--rcp", required=True, help="Provide a rcp.")
     parser.add_argument("--start", required=True, help="Provide a start integer.", type=int)
     parser.add_argument("--end", required=True, help="Provide end integer", type=int)
+    parser.add_argument("--input_base_dir", required=True, help"The base directory where to find input .nc files. The subfolder structure is assumed.")
+    parser.add_argument("--output_base_dir", required=True, help"The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
     
     args = parser.parse_args()
     return args
 
 
-def get_config():
-    """Return config file as an object"""
-    try:
-        stream = open(f'{os.path.dirname(__file__)}/config.yaml', 'r')
-        stream = yaml.safe_load(stream)
-        return stream
-    except:
-        print('ERROR: Config file failed to open!')
-        exit()
-
-
 def pre_stitch(i):
     args = get_args()
-    cfg = get_config()
 
     if i == 0:
-        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i}_*.nc')
-        l2 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i + 1}_*.nc')
-        l3 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i + 2}_*.nc')
+        l1 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i}_*.nc')
+        l2 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i + 1}_*.nc')
+        l3 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i + 2}_*.nc')
         flist = l1 + l2 + l3
         
     elif i == 280:
-        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3}_*.nc')
+        l1 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i*3}_*.nc')
         flist = l1
 
     else:
-        l1 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3}_*.nc')
-        l2 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3 + 1}_*.nc')
-        l3 = glob.glob(f'/scratch/er4/jr6311/final_mrnbc/awap/bias_corrected/{args.gcm}/{args.rcp}/{i*3 + 2}_*.nc')
+        l1 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i*3}_*.nc')
+        l2 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i*3 + 1}_*.nc')
+        l3 = glob.glob(f'{args.input_base_dir}/{args.gcm}/{args.rcp}/{i*3 + 2}_*.nc')
         flist = l1 + l2 + l3
 
     print('number', i)
@@ -60,11 +50,17 @@ def pre_stitch(i):
     comp = dict(zlib=True, complevel=9)
     encoding = {var: comp for var in ds.data_vars}
     
+    outdir = os.path.join(
+        args.output_base_dir,
+        args.gcm,
+        args.rcp)
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
-    if not os.path.exists(f'{cfg["working_dir"]}/awap/bias_corrected_subset/{args.gcm}/{args.rcp}/'):
-        os.makedirs(f'{cfg["working_dir"]}/awap/bias_corrected_subset/{args.gcm}/{args.rcp}/')
-
-    ds.to_netcdf(f'{cfg["working_dir"]}/awap/bias_corrected_subset/{args.gcm}/{args.rcp}/{i}_{args.gcm}_{args.rcp}_subset_mrnbc.nc4', mode='w', encoding=encoding, unlimited_dims=['time'])
+    outfile = os.path.join(
+        outdir,
+        f'{i}_{args.gcm}_{args.rcp}.nc4')
+    ds.to_netcdf(outfile, mode='w', encoding=encoding, unlimited_dims=['time'])
 
     print(f'Part {i} completed')
 

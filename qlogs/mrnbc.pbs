@@ -14,7 +14,7 @@ rcp=rcp45
 per=bc_fut
 scale=awap
 input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res
-output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 

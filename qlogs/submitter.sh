@@ -16,11 +16,19 @@ cat >> temp_submission_script <<EOF
 
 gcm=CNRM-CM5
 rcp=rcp45
+input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/pre_stitch
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 awap_stitch.py --gcm ${gcm} --rcp ${rcp} --start ${start[$ii]} --end ${end[$ii]}
+python3 awap_stitch.py \
+    --gcm ${gcm} \
+    --rcp ${rcp} \
+    --start ${start[$ii]} \
+    --end ${end[$ii]} \
+    --input_base_dir ${input_base_dir} \
+    --output_base_dir ${output_base_dir}
 
 EOF
 

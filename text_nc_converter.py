@@ -37,8 +37,6 @@ def get_args():
 def get_output_dir(args):
     return os.path.join(
         args.output_base_dir,
-        'text_to_nc',
-        f'{args.scale}_scale',
         args.model_id,
         args.rcp)
 
