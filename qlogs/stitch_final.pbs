@@ -3,7 +3,7 @@
 #PBS -q hugemem
 #PBS -l walltime=10:00:00
 #PBS -l storage=gdata/er4+scratch/er4+scratch/eg3
-#PBS -N job_daskstitch
+#PBS -N job_mrnbc_stitch_all
 #PBS -P er4
 #PBS -l ncpus=24
 #PBS -l mem=1440gb
@@ -11,13 +11,13 @@
 
 gcm=ACCESS1-0
 rcp=rcp45
-input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/pre_stitch
+input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/stitched_lon_strips
 output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/final_stitch
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 dask_stitch.py \
+python3 stitch_nc_files.py \
     --gcm ${gcm} \
     --rcp ${rcp} \
     --input_base_dir ${input_base_dir} \

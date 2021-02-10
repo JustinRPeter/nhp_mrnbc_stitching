@@ -8,7 +8,7 @@ cat >> temp_submission_script <<EOF
 #PBS -q hugemem
 #PBS -l walltime=48:00:00
 #PBS -l storage=gdata/er4+scratch/er4+scratch/eg3+gdata/eg3
-#PBS -N job_hugemem_mrnbc
+#PBS -N job_mrnbc_stitch_lons
 #PBS -P er4
 #PBS -l ncpus=26
 #PBS -l mem=1440gb
@@ -17,12 +17,12 @@ cat >> temp_submission_script <<EOF
 gcm=CNRM-CM5
 rcp=rcp45
 input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
-output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/pre_stitch
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/stitched_lon_strips
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 awap_stitch.py \
+python3 stitch_single_cells_into_lons.py \
     --gcm ${gcm} \
     --rcp ${rcp} \
     --start ${start[$ii]} \
