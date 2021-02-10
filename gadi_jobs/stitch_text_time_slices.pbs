@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#PBS -q normal
+#PBS -l walltime=12:00:00
+#PBS -l storage=scratch/eg3
+#PBS -N job_mrnbc_stitch_text_time_slices
+#PBS -P er4
+#PBS -l ncpus=16
+#PBS -l mem=64gb
+#PBS -l wd
+
+
+gcm=ACCESS1-0
+rcp=rcp45
+period=bc_fut
+input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices
+
+
+
+
+time_slices=(2006-2035 2036-2065 2066-2095 2070-2099)
+lon_start_index=0
+lon_end_index=840
+lat_start_index=0
+lat_end_index=680
+
+time_slice_base_input_dir=${input_base_dir}/${gcm}/${rcp}
+output_dir=${output_base_dir}/${gcm}/${rcp}
+
+
+echo "GCM: ${var}"
+echo "RCP: ${rcp}"
+echo "Period: ${period}"
+echo "Time Slices: ${time_slices[@]}"
+echo "Time Slice Base Input dir: ${time_slice_base_input_dir}"
+echo "Output Dir: ${output_dir}"
+echo "Lon index start/stop: ${lon_start_index}/${lon_end_index}"
+echo "Lat index start/stop: ${lat_start_index}/${lat_end_index}"
+echo ""
+
+mkdir -p ${output_dir}
+
+for ((lon_index=${lon_start_index};lon_index<=${lon_end_index};lon_index++)); do
+    for ((lat_index=${lat_start_index};lat_index<=${lat_end_index};lat_index++)); do
+
+        echo "Joining time slice .dat files for lon_index:${lon_index} lat_index:${lat_index}"
+        time_slice_text_file_basename=${period}_${lon_index}_${lat_index}.dat
+        output_file=${output_dir}/${time_slice_text_file_basename}
+        cat \
+            ${time_slice_base_input_dir}/${time_slices[0]}/${time_slice_text_file_basename} \
+            ${time_slice_base_input_dir}/${time_slices[1]}/${time_slice_text_file_basename} \
+            ${time_slice_base_input_dir}/${time_slices[2]}/${time_slice_text_file_basename} \
+            ${time_slice_base_input_dir}/${time_slices[3]}/${time_slice_text_file_basename} \
+            > \
+            ${output_file}
+    done
+done
+
+for ((i=2006;i<=2099;i++));do
+    num_days=$(grep "${i}" -c /scratch/eg3/vd5822/mrnbc_stitching/text_stitch_time_slices/ACCESS1-0/rcp45/bc_fut_1_1.dat)
+    echo "Year: ${i}, Days: ${num_days}"
+done
+
+echo "Job Completed"
