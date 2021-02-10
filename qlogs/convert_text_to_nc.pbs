@@ -3,7 +3,7 @@
 #PBS -q normal
 #PBS -l walltime=48:00:00
 #PBS -l storage=gdata/er4+scratch/er4+scratch/eg3
-#PBS -N job_mrnbc
+#PBS -N job_mrnbc_text_to_nc
 #PBS -P er4
 #PBS -l ncpus=24
 #PBS -l mem=190gb
@@ -19,7 +19,7 @@ output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
 cd ../
-python3 text_nc_converter.py \
+python3 convert_text_to_nc.py \
     --model_id ${gcm} \
     --rcp ${rcp} \
     --time_period ${per} \
