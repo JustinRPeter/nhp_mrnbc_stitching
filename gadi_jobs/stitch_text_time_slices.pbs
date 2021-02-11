@@ -5,8 +5,8 @@
 #PBS -l storage=scratch/eg3
 #PBS -N job_mrnbc_stitch_text_time_slices
 #PBS -P er4
-#PBS -l ncpus=16
-#PBS -l mem=64gb
+#PBS -l ncpus=8
+#PBS -l mem=8gb
 #PBS -l wd
 
 
@@ -18,7 +18,6 @@ output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices
 
 
 
-
 time_slices=(2006-2035 2036-2065 2066-2095 2070-2099)
 lon_start_index=0
 lon_end_index=840
@@ -27,7 +26,6 @@ lat_end_index=680
 
 time_slice_base_input_dir=${input_base_dir}/${gcm}/${rcp}
 output_dir=${output_base_dir}/${gcm}/${rcp}
-
 
 echo "GCM: ${var}"
 echo "RCP: ${rcp}"
