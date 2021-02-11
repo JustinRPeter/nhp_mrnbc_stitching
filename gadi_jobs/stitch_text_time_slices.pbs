@@ -47,19 +47,16 @@ for ((lon_index=${lon_start_index};lon_index<=${lon_end_index};lon_index++)); do
         echo "Joining time slice .dat files for lon_index:${lon_index} lat_index:${lat_index}"
         time_slice_text_file_basename=${period}_${lon_index}_${lat_index}.dat
         output_file=${output_dir}/${time_slice_text_file_basename}
-        cat \
-            ${time_slice_base_input_dir}/${time_slices[0]}/${time_slice_text_file_basename} \
-            ${time_slice_base_input_dir}/${time_slices[1]}/${time_slice_text_file_basename} \
-            ${time_slice_base_input_dir}/${time_slices[2]}/${time_slice_text_file_basename} \
-            ${time_slice_base_input_dir}/${time_slices[3]}/${time_slice_text_file_basename} \
-            > \
-            ${output_file}
+
+        # NOTE: the time slices for 2066-2095 and 2070-2099 have overlapping years (2070-2095).
+        # For the overlapping period, take the 2066-2095 timeslice.
+        # This means we only extract the last 4 years from 2070-2099 file (1461 days)
+        cat ${time_slice_base_input_dir}/${time_slices[0]}/${time_slice_text_file_basename} > ${output_file}
+        cat ${time_slice_base_input_dir}/${time_slices[1]}/${time_slice_text_file_basename} >> ${output_file}
+        cat ${time_slice_base_input_dir}/${time_slices[2]}/${time_slice_text_file_basename} >> ${output_file}
+        tail -n1461 ${time_slice_base_input_dir}/${time_slices[3]}/${time_slice_text_file_basename} >> ${output_file}
     done
 done
 
-for ((i=2006;i<=2099;i++));do
-    num_days=$(grep "${i}" -c /scratch/eg3/vd5822/mrnbc_stitching/text_stitch_time_slices/ACCESS1-0/rcp45/bc_fut_1_1.dat)
-    echo "Year: ${i}, Days: ${num_days}"
-done
 
 echo "Job Completed"
