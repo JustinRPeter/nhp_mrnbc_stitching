@@ -28,7 +28,7 @@ lat_end_index=xxLAT_END_INDEXxx
 time_slice_base_input_dir=${input_base_dir}/${gcm}/${rcp}
 output_dir=${output_base_dir}/${gcm}/${rcp}
 
-echo "GCM: ${var}"
+echo "GCM: ${gcm}"
 echo "RCP: ${rcp}"
 echo "Period: ${period}"
 echo "Time Slices: ${time_slices[@]}"
