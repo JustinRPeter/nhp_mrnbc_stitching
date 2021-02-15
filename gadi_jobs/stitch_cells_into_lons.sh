@@ -1,38 +1,46 @@
-start=( 0 50 100 150 200 250 )
-end=( 50 100 150 200 250 281 )
-
-for (( ii=0;ii<=7;ii++ )); do
-cat >> temp_submission_script <<EOF
 #!/bin/bash
 
-#PBS -q hugemem
-#PBS -l walltime=48:00:00
-#PBS -l storage=gdata/er4+scratch/er4+scratch/eg3+gdata/eg3
-#PBS -N job_mrnbc_stitch_lons
-#PBS -P er4
-#PBS -l ncpus=26
-#PBS -l mem=1440gb
-#PBS -l wd
+# This script generates and submits jobs for stitching grid cell .nc files into
+# longitudinal strips. Each longitudinal strips is actually 3 lons, and all
+# lat values for those lons.
+set -e
 
-gcm=CNRM-CM5
-rcp=rcp45
-input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
-output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/stitched_lon_strips
+gcms=(ACCESS1-0 CNRM-CM5 GFDL-ESM2M MIROC5)
+rcps=(historical rcp45 rcp85)
 
-source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
-cd ../
-python3 stitch_single_cells_into_lons.py \
-    --gcm ${gcm} \
-    --rcp ${rcp} \
-    --start ${start[$ii]} \
-    --end ${end[$ii]} \
-    --input_base_dir ${input_base_dir} \
-    --output_base_dir ${output_base_dir}
+template_file=stitch_cells_into_lons.template
+lon_triplet_start_indicies=(0 50 100 150 200 250)
+lon_triplet_end_indicies=(49 99 149 199 249 280)
+num_lon_triplet_groups=6
 
-EOF
+for gcm in ${gcms[@]}; do
+    for rcp in ${rcps[@]}; do
+        for ((lon_group=0;lon_group<${num_lon_triplet_groups};lon_group++)); do
+            lon_start_group=${lon_triplet_start_indicies[$lon_group]}
+            lon_end_group=${lon_triplet_end_indicies[$lon_group]}
 
-qsub temp_submission_script
-rm temp_submission_script
-sleep 2
+            job_file=generated_job_mrnbc_stitch_cells_to_lons_${gcm}_${rcp}_lon_triplet_${lon_group}.pbs
+            job_name=job_mrnbc_stitch_cells_to_lons_${gcm}_${rcp}_lon_triplet_${lon_group}
+
+            # Create job file from template
+            echo "Creating Job ${job_file}"
+            cp ${template_file} ${job_file}
+            sed -i "s|xxJOB_NAMExx|${job_name}|g" ${job_file}
+            sed -i "s|xxGCMxx|${gcm}|g" ${job_file}
+            sed -i "s|xxRCPxx|${rcp}|g" ${job_file}
+            sed -i "s|xxLON_START_GROUPxx|${lon_start_group}|g" ${job_file}
+            sed -i "s|xxLON_END_GROUPxx|${lon_end_group}|g" ${job_file}
+            wait
+            
+            # submit job
+            echo "Submitting Job ${job_file}"
+            qsub ${job_file}
+            wait
+
+            echo "Removing Job file"
+            rm ${job_file}
+            wait
+        done
+    done
 done

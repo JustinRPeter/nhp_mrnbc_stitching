@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#PBS -q hugemem
+#PBS -l walltime=48:00:00
+#PBS -l storage=gdata/er4+scratch/er4+scratch/eg3+gdata/eg3
+#PBS -N xxJOB_NAMExx
+#PBS -P er4
+#PBS -l ncpus=26
+#PBS -l mem=1440gb
+#PBS -l wd
+
+gcm=xxGCMxx
+rcp=xxRCPxx
+start_lon_group=xxLON_START_GROUPxx
+end_lon_group=xxLON_END_GROUPxx
+input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
+output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/stitched_lon_strips
+
+
+echo "GCM: ${gcm}"
+echo "RCP: ${rcp}"
+echo "Input Base Dir: ${input_base_dir}"
+echo "Output Base Dir: ${output_base_dir}"
+echo "Lon triplet start/stop: ${start_lon_group}/${end_lon_group}"
+echo ""
+
+source /g/data/er4/jr6311/miniconda/bin/activate isimip
+
+cd ../
+python3 stitch_single_cells_into_lons.py \
+    --gcm ${gcm} \
+    --rcp ${rcp} \
+    --start ${start_lon_group} \
+    --end ${end_lon_group} \
+    --input_base_dir ${input_base_dir} \
+    --output_base_dir ${output_base_dir}
+
+echo "Job Completed"

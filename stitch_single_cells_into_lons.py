@@ -73,4 +73,4 @@ if __name__ == "__main__":
     pre_stitched_wrapped_function = partial(pre_stitch, args)
 
     with Pool() as p:
-        p.map(pre_stitched_wrapped_function, range(args.start, args.end))
+        p.map(pre_stitched_wrapped_function, range(args.start, args.end + 1))
