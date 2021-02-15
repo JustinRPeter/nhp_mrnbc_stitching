@@ -25,7 +25,8 @@ def get_args():
     parser = argparse.ArgumentParser(description='Supply arguments to stitch ".dat" files into netCDF files.')
     parser.add_argument("--model_id", required=True, help="Provide a model.")
     parser.add_argument("--rcp", required=True, help="Provide the RCP")
-    parser.add_argument("--time_period", required=True, help="Provide a time span.")
+    parser.add_argument("--rcp_folder_for_mrnbc", required=True, help="RCP lookup for MRNBC. Use when files located not in rcp folder.")
+    parser.add_argument("--file_prefix", required=True, help="Prefix to use to look for files, e.g. bc_fut")
     parser.add_argument("--scale", required=True, choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
     parser.add_argument("--input_base_dir", required=True, help="The base directory where to find input .dat files. The subfolder structure is assumed.")
     parser.add_argument("--output_base_dir", required=True, help="The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
@@ -52,7 +53,7 @@ def create_output_dir(args):
 
 def get_files(args):
     try:
-        file_list = glob.glob(f'{args.input_base_dir}/{args.model_id}/{args.rcp}/**/{args.time_period}*dat', recursive=True)
+        file_list = glob.glob(f'{args.input_base_dir}/{args.model_id}/{args.rcp_folder_for_mrnbc}/**/{args.file_prefix}*dat', recursive=True)
     except:
         print('ERROR: Bad file path!')
     return file_list
@@ -150,7 +151,6 @@ if __name__ == "__main__":
     cfg = get_config()
     args = get_args()
     create_output_dir(args)
-    print(f'Running for: {args.model_id}, {args.rcp}, {args.time_period}, SCALE:{args.scale}')
 
     # In order to use executor.map to apply the process_file() function for
     # each file, whilst also taking more than one argument (i.e. cfg and args),

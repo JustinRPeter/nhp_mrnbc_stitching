@@ -11,12 +11,37 @@
 
 set -e
 
-gcm=CNRM-CM5
+gcm=ACCESS1-0
 rcp=rcp45
-per=bc_fut
 scale=awap
-input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res
 output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
+
+
+
+# Determine folders and names used by MRNBC
+case ${rcp} in
+historical)
+    rcp_folder_for_mrnbc=rcp85
+    file_prefix=bc_cur
+    input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices;;
+rcp45|rcp85)
+    rcp_folder_for_mrnbc=${rcp}
+    file_prefix=bc_fut
+    input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res;;
+*)
+    echo "Unsupported/unknown RCP ${rcp}"
+    exit 1;;
+esac
+
+echo "GCM: ${gcm}"
+echo "RCP: ${rcp}"
+echo "RCP folder for MRNBC: ${rcp_folder_for_mrnbc}"
+echo "File Prefix: ${file_prefix}"
+echo "Scale: ${scale}"
+echo "Input Base Dir: ${input_base_dir}"
+echo "Output Base Dir: ${output_base_dir}"
+echo ""
+
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
@@ -24,7 +49,8 @@ cd ../
 python3 convert_text_to_nc.py \
     --model_id ${gcm} \
     --rcp ${rcp} \
-    --time_period ${per} \
+    --rcp_folder_for_mrnbc ${rcp_folder_for_mrnbc} \
+    --file_prefix ${file_prefix} \
     --scale ${scale} \
     --input_base_dir ${input_base_dir} \
     --output_base_dir ${output_base_dir}
