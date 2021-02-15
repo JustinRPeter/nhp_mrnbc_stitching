@@ -3,15 +3,16 @@
 #PBS -q normal
 #PBS -l walltime=12:00:00
 #PBS -l storage=scratch/eg3
-#PBS -N job_mrnbc_stitch_text_time_slices
+#PBS -N xxJOB_NAMExx
 #PBS -P er4
 #PBS -l ncpus=8
 #PBS -l mem=8gb
 #PBS -l wd
 
+set -e
 
-gcm=ACCESS1-0
-rcp=rcp45
+gcm=xxGCMxx
+rcp=xxRCPxx
 period=bc_fut
 input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res
 output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices
@@ -19,10 +20,10 @@ output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices
 
 
 time_slices=(2006-2035 2036-2065 2066-2095 2070-2099)
-lon_start_index=0
-lon_end_index=840
-lat_start_index=0
-lat_end_index=680
+lon_start_index=xxLON_START_INDEXxx
+lon_end_index=xxLON_END_INDEXxx
+lat_start_index=xxLAT_START_INDEXxx
+lat_end_index=xxLAT_END_INDEXxx
 
 time_slice_base_input_dir=${input_base_dir}/${gcm}/${rcp}
 output_dir=${output_base_dir}/${gcm}/${rcp}
