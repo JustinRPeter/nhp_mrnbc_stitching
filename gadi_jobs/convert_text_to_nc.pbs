@@ -9,6 +9,8 @@
 #PBS -l mem=190gb
 #PBS -l wd
 
+set -e
+
 gcm=ACCESS1-0
 rcp=rcp45
 per=bc_fut
@@ -26,3 +28,5 @@ python3 convert_text_to_nc.py \
     --scale ${scale} \
     --input_base_dir ${input_base_dir} \
     --output_base_dir ${output_base_dir}
+
+echo "Job Completed"
