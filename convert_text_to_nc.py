@@ -13,7 +13,7 @@ import numpy as np
 def get_config():
     """Return config file as an object"""
     try:
-        stream = open(f'{os.path.dirname(__file__)}/config.yaml', 'r')
+        stream = open('config.yaml', 'r')
         stream = yaml.safe_load(stream)
         return stream
     except:
