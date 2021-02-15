@@ -16,8 +16,8 @@ def get_args():
     parser.add_argument("--rcp", required=True, help="Provide a rcp.")
     parser.add_argument("--start", required=True, help="Provide a start integer.", type=int)
     parser.add_argument("--end", required=True, help="Provide end integer", type=int)
-    parser.add_argument("--input_base_dir", required=True, help"The base directory where to find input .nc files. The subfolder structure is assumed.")
-    parser.add_argument("--output_base_dir", required=True, help"The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
+    parser.add_argument("--input_base_dir", required=True, help="The base directory where to find input .nc files. The subfolder structure is assumed.")
+    parser.add_argument("--output_base_dir", required=True, help="The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
     
     args = parser.parse_args()
     return args
