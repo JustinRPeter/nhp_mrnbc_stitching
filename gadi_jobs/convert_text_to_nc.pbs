@@ -23,11 +23,11 @@ case ${rcp} in
 historical)
     rcp_folder_for_mrnbc=rcp85
     file_prefix=bc_cur
-    input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices;;
+    input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res;;
 rcp45|rcp85)
     rcp_folder_for_mrnbc=${rcp}
     file_prefix=bc_fut
-    input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res;;
+    input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices;;
 *)
     echo "Unsupported/unknown RCP ${rcp}"
     exit 1;;
