@@ -27,8 +27,8 @@ def get_args():
     parser.add_argument("--rcp", required=True, help="Provide the RCP")
     parser.add_argument("--time_period", required=True, help="Provide a time span.")
     parser.add_argument("--scale", required=True, choices=['gcm', 'awap'], help="Specify whether processing for GCM or AWAP scale data.")
-    parser.add_argument("--input_base_dir", required=True, help"The base directory where to find input .dat files. The subfolder structure is assumed.")
-    parser.add_argument("--output_base_dir", required=True, help"The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
+    parser.add_argument("--input_base_dir", required=True, help="The base directory where to find input .dat files. The subfolder structure is assumed.")
+    parser.add_argument("--output_base_dir", required=True, help="The base directory where to write output. Files will be written to subfolders based on model, rcp, etc.")
     
     args = parser.parse_args()
     return args
