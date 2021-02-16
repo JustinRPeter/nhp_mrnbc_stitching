@@ -90,13 +90,7 @@ def get_dataframe(file):
     Concatenate the 'year'/'month'/'day' variables into a single 'time' variable.
     Delete the old 'year'/'month'/'day' variables.
     '''
-    try:
-        df = pd.DataFrame(np.loadtxt(file))
-    except Exception as e:
-        print(f'Error in file {file}')
-        print(e)
-        return None
-
+    df = pd.DataFrame(np.loadtxt(file))
     df.columns = ['year', 'month', 'day', 'pr', 'tasmax', 'tasmin', 'sfcWind', 'rsds']
     df['time'] = df.apply(lambda row: pd.Timestamp(year=int(row[0]), month=int(row[1]), day=int(row[2])), axis=1)
     ordered_df = df.drop(['year', 'month', 'day'], axis=1)
@@ -122,20 +116,20 @@ def process_file(cfg, args, file):
     outpath = get_output_dir(args)
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
-        df = get_dataframe(file)
-        if df is None:
-            return
-
-        df2ds = resolve_lat_lon(df, lon, lat)
-        ds = df2ds.to_xarray()
-        comp = dict(zlib=True, complevel=9)
-        encoding = {var: comp for var in ds.data_vars}
-        ds['pr'] /= 86400
-        ds['rsds'] /= (86400/1000000)
-        ds['tasmax'] += 273.15
-        ds['tasmin'] += 273.15
-        ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', encoding=encoding, engine='netcdf4')
-
+        try:
+            df = get_dataframe(file)
+            df2ds = resolve_lat_lon(df, lon, lat)
+            ds = df2ds.to_xarray()
+            comp = dict(zlib=True, complevel=9)
+            encoding = {var: comp for var in ds.data_vars}
+            ds['pr'] /= 86400
+            ds['rsds'] /= (86400/1000000)
+            ds['tasmax'] += 273.15
+            ds['tasmin'] += 273.15
+            ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', encoding=encoding, engine='netcdf4')
+        except Exception as e:
+            print(f'Error in file {file}')
+            print(e)
 
 class Coord:
     '''
