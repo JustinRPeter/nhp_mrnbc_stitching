@@ -9,11 +9,21 @@
 #PBS -l mem=1440gb
 #PBS -l wd
 
+set -e
+
 gcm=ACCESS1-0
 rcp=rcp45
 input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/stitched_lon_strips
 output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/final_stitch
 dask_temp_dir=/scratch/eg3/${USER}/mrnbc_stitching/dask_temp_dir
+
+
+echo "GCM: ${gcm}"
+echo "RCP: ${rcp}"
+echo "Input Base Dir: ${input_base_dir}"
+echo "Output Base Dir: ${output_base_dir}"
+echo "Dask Temp Dir: ${dask_temp_dir}"
+echo ""
 
 source /g/data/er4/jr6311/miniconda/bin/activate isimip
 
@@ -24,3 +34,5 @@ python3 stitch_nc_files.py \
     --input_base_dir ${input_base_dir} \
     --output_base_dir ${output_base_dir} \
     --dask_temp_dir ${dask_temp_dir}
+
+echo "Job Completed"

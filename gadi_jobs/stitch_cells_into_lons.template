@@ -9,6 +9,8 @@
 #PBS -l mem=1440gb
 #PBS -l wd
 
+set -e
+
 gcm=xxGCMxx
 rcp=xxRCPxx
 start_lon_group=xxLON_START_GROUPxx
