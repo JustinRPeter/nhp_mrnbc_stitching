@@ -12,6 +12,7 @@ def get_args():
     parser.add_argument("--rcp", required=True, help="Specify the scenario. e.g. rcp45")
     parser.add_argument("--input_base_dir", required=True, help="The base directory containing files to stitch. Subfolder for gcm and rcp is assumed.")
     parser.add_argument("--output_base_dir", required=True, help="The base directory to write stitched files to.")
+    parser.add_argument("--dask_temp_dir", required=True, help="The directory for dask to hold temporary files")
 
     args = parser.parse_args()
     return args
@@ -20,6 +21,7 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
 
+    da.config.set({'temporary_directory': args.dask_temp_dir)
     client = Client(n_workers=8)
     print(client)
 
