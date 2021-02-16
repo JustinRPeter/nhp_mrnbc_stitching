@@ -92,8 +92,9 @@ def get_dataframe(file):
     '''
     try:
         df = pd.DataFrame(np.loadtxt(file))
-    except:
+    except Exception as e:
         print(f'Error in file {file}')
+        print(e)
         return None
 
     df.columns = ['year', 'month', 'day', 'pr', 'tasmax', 'tasmin', 'sfcWind', 'rsds']
