@@ -2,6 +2,7 @@ import argparse
 import xarray as xr
 import dask as da
 import glob
+import os
 
 from dask.distributed import Client
 
@@ -21,7 +22,7 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
 
-    da.config.set({'temporary_directory': args.dask_temp_dir)
+    da.config.set({'temporary_directory': args.dask_temp_dir})
     client = Client(n_workers=8)
     print(client)
 
