@@ -90,7 +90,12 @@ def get_dataframe(file):
     Concatenate the 'year'/'month'/'day' variables into a single 'time' variable.
     Delete the old 'year'/'month'/'day' variables.
     '''
-    df = pd.DataFrame(np.loadtxt(file))
+    try:
+        df = pd.DataFrame(np.loadtxt(file))
+    except:
+        print(f'Error in file {file}')
+        return None
+
     df.columns = ['year', 'month', 'day', 'pr', 'tasmax', 'tasmin', 'sfcWind', 'rsds']
     df['time'] = df.apply(lambda row: pd.Timestamp(year=int(row[0]), month=int(row[1]), day=int(row[2])), axis=1)
     ordered_df = df.drop(['year', 'month', 'day'], axis=1)
@@ -111,12 +116,15 @@ def process_file(cfg, args, file):
     '''
     Function to process a single file
     '''
-    df = get_dataframe(file)
     lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.scale)
 
     outpath = get_output_dir(args)
 
     if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
+        df = get_dataframe(file)
+        if df is None:
+            return
+
         df2ds = resolve_lat_lon(df, lon, lat)
         ds = df2ds.to_xarray()
         comp = dict(zlib=True, complevel=9)
