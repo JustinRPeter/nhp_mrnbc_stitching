@@ -114,8 +114,9 @@ def process_file(cfg, args, file):
     lon, lat, ilon, ilat = get_lat_lon_step(file, args.model_id, cfg, args.scale)
 
     outpath = get_output_dir(args)
+    outfile = f'{outpath}/{int(ilon)}_{int(ilat)}.nc'
 
-    if not os.path.exists(f'{outpath}/{int(ilon)}_{int(ilat)}.nc'):
+    if not os.path.exists(outfile):
         try:
             df = get_dataframe(file)
             df2ds = resolve_lat_lon(df, lon, lat)
@@ -126,7 +127,7 @@ def process_file(cfg, args, file):
             ds['rsds'] /= (86400/1000000)
             ds['tasmax'] += 273.15
             ds['tasmin'] += 273.15
-            ds.to_netcdf(path=f"{outpath}/{int(ilon)}_{int(ilat)}.nc", mode='w', encoding=encoding, engine='netcdf4')
+            ds.to_netcdf(path=outfile, mode='w', encoding=encoding, engine='netcdf4')
         except Exception as e:
             print(f'Error in file {file}')
             print(e)
