@@ -3,6 +3,8 @@
 # This script generates and submits jobs for stitching grid cell .nc files into
 # longitudinal strips. Each longitudinal strips is actually 3 lons, and all
 # lat values for those lons.
+# Multiple jobs are submitted for one gcm/rcp, with each job repsonsible for
+# a range of lon triplets.
 set -e
 
 gcms=(ACCESS1-0 CNRM-CM5 GFDL-ESM2M MIROC5)
