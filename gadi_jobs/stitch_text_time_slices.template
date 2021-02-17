@@ -42,18 +42,21 @@ mkdir -p ${output_dir}
 
 for ((lon_index=${lon_start_index};lon_index<=${lon_end_index};lon_index++)); do
     for ((lat_index=${lat_start_index};lat_index<=${lat_end_index};lat_index++)); do
-
-        echo "Joining time slice .dat files for lon_index:${lon_index} lat_index:${lat_index}"
         time_slice_text_file_basename=${period}_${lon_index}_${lat_index}.dat
         output_file=${output_dir}/${time_slice_text_file_basename}
 
-        # NOTE: the time slices for 2066-2095 and 2070-2099 have overlapping years (2070-2095).
-        # For the overlapping period, take the 2066-2095 timeslice.
-        # This means we only extract the last 4 years from 2070-2099 file (1461 days)
-        cat ${time_slice_base_input_dir}/${time_slices[0]}/${time_slice_text_file_basename} > ${output_file}
-        cat ${time_slice_base_input_dir}/${time_slices[1]}/${time_slice_text_file_basename} >> ${output_file}
-        cat ${time_slice_base_input_dir}/${time_slices[2]}/${time_slice_text_file_basename} >> ${output_file}
-        tail -n1461 ${time_slice_base_input_dir}/${time_slices[3]}/${time_slice_text_file_basename} >> ${output_file}
+        if [ ! -f ${output_file} ]; then
+            echo "Joining time slice .dat files for lon_index:${lon_index} lat_index:${lat_index}"
+            # NOTE: the time slices for 2066-2095 and 2070-2099 have overlapping years (2070-2095).
+            # For the overlapping period, take the 2066-2095 timeslice.
+            # This means we only extract the last 4 years from 2070-2099 file (1461 days)
+            cat ${time_slice_base_input_dir}/${time_slices[0]}/${time_slice_text_file_basename} > ${output_file}
+            cat ${time_slice_base_input_dir}/${time_slices[1]}/${time_slice_text_file_basename} >> ${output_file}
+            cat ${time_slice_base_input_dir}/${time_slices[2]}/${time_slice_text_file_basename} >> ${output_file}
+            tail -n1461 ${time_slice_base_input_dir}/${time_slices[3]}/${time_slice_text_file_basename} >> ${output_file}
+        else
+            echo "Skipping (already exists) ${output_file}"
+        fi
     done
 done
 
