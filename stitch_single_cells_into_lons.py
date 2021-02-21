@@ -22,6 +22,11 @@ def get_args():
     args = parser.parse_args()
     return args
 
+def get_outdir(args):
+    return os.path.join(
+        args.output_base_dir,
+        args.gcm,
+        args.rcp)    
 
 def pre_stitch(args, i):
     if i == 0:
@@ -49,13 +54,7 @@ def pre_stitch(args, i):
     comp = dict(dtype="float32", zlib=True, complevel=9)
     encoding = {var: comp for var in ds.data_vars}
     
-    outdir = os.path.join(
-        args.output_base_dir,
-        args.gcm,
-        args.rcp)
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-
+    outdir = get_outdir(args)
     outfile = os.path.join(
         outdir,
         f'{i}_{args.gcm}_{args.rcp}.nc4')
@@ -67,6 +66,18 @@ def pre_stitch(args, i):
 if __name__ == "__main__":
     args = get_args()
     print(f'Running range {args.start}, {args.end}')
+
+    # Try to make the path and swallow the exception if it fails.
+    # This is done because this script is run in parallel, and it can fall
+    # over when multiple jobs try to create the folder at the same time.
+    outdir = get_outdir(args)
+    if not os.path.exists(outdir):
+        try:
+            os.makedirs(outdir)
+        except:
+            pass
+    if not os.path.exists(outdir):
+        raise Exception(f'Output folder {outdir} does not exist and it could not be created')
 
     # Wrap the pre_stitch() function we want to use for multiprocessing
     # in a partial func, so that we can pass additional args to it.

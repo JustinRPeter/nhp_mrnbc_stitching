@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#PBS -q hugemem
-#PBS -l walltime=48:00:00
+#PBS -q normal
+#PBS -l walltime=2:00:00
 #PBS -l storage=gdata/er4+scratch/er4+scratch/eg3+gdata/eg3
 #PBS -N xxJOB_NAMExx
 #PBS -P er4
 #PBS -l ncpus=26
-#PBS -l mem=1440gb
+#PBS -l mem=190gb
 #PBS -l wd
 
 set -e
