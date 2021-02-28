@@ -1,21 +1,20 @@
 #!/bin/bash
 
-#PBS -q hugemem
-#PBS -l walltime=48:00:00
-#PBS -l storage=gdata/er4+scratch/er4+scratch/eg3+gdata/eg3
-#PBS -N job_mrnbc_text_to_nc_hugemem
+#PBS -q normal
+#PBS -l walltime=15:00:00
+#PBS -l storage=gdata/er4+scratch/er4+scratch/eg3
+#PBS -N xxJOB_NAMExx
 #PBS -P er4
-#PBS -l ncpus=26
-#PBS -l mem=1440gb
+#PBS -l ncpus=24
+#PBS -l mem=190gb
 #PBS -l wd
 
 set -e
 
-gcm=ACCESS1-0
-rcp=rcp45
+gcm=xxGCMxx
+rcp=xxRCPxx
 scale=awap
 output_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_to_nc
-
 
 
 # Determine folders and names used by MRNBC
@@ -23,11 +22,11 @@ case ${rcp} in
 historical)
     rcp_folder_for_mrnbc=rcp85
     file_prefix=bc_cur
-    input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices;;
+    input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res;;
 rcp45|rcp85)
     rcp_folder_for_mrnbc=${rcp}
     file_prefix=bc_fut
-    input_base_dir=/scratch/eg3/jp0715/HydroProj/data/unsw/mrnbc_output/awap_res;;
+    input_base_dir=/scratch/eg3/${USER}/mrnbc_stitching/text_stitch_time_slices;;
 *)
     echo "Unsupported/unknown RCP ${rcp}"
     exit 1;;
