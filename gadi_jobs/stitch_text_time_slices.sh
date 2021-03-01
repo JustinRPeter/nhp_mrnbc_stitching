@@ -7,6 +7,9 @@
 # lat grids (0-680).
 # Note: it is not necessary to merge time slices for historical time step, because
 # the full time series is already available in the one file.
+# Use SKIP for a value in lon_start_indices to skip that lon group.
+# This can be useful for when one of the lon group jobs fails, and you want
+# to run just that group again, whilst preserving the group number in the job logs.
 set -e
 
 
@@ -26,6 +29,11 @@ for gcm in ${gcms[@]}; do
         for ((lon_group=0;lon_group<${num_lon_groups};lon_group++)); do
             lon_start_index=${lon_start_indices[$lon_group]}
             lon_end_index=${lon_end_indices[$lon_group]}
+
+            if [ "${lon_start_index}" = "SKIP" ]; then
+                echo "Skipping ${gcm} ${rcp} lon group ${lon_group}"
+                continue
+            fi
 
             job_file=generated_job_mrnbc_stitch_text_time_slices_${gcm}_${rcp}_lon_group_${lon_group}.pbs
             job_name=job_mrnbc_stitch_text_time_slices_${gcm}_${rcp}_lon_group_${lon_group}
