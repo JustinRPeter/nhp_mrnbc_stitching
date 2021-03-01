@@ -102,4 +102,6 @@ Compliance Checker is a two part process:
 * Run `run_merge_hydroproj.sh`
   * Submits multiple jobs, one per GCM/RCP/variable combo
 
-In both cases, check that the variables named `variables`, `rcps`, and `gcm` are properly set for MRNBC and which variables/RCPs to run for. By default, they are setup to run for all variables.
+In both cases, check that the variables named `variables`, `rcps`, and `gcm` are properly set for MRNBC and which variables/RCPs to run for. Additionally for `run_merge_hydroproj.sh`, also check that `bias_correction_method` is set to `MRNBC`.
+
+By default, these scripts are setup to run for all variables and RCPs for a given model.
