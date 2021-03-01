@@ -36,6 +36,7 @@ The MRNBC stitching scripts perform two main functions: convert the text files i
      * It will create PBS jobs from a template file and submit them
 2. `convert_text_to_nc`
    * This will take a .dat file, and convert it to NetCDF file
+   * It also performs unit conversion
    * Modify `convert_text_to_nc.pbs` for the desired model/rcp, then submit the job
 3. `stitch_cells_into_lons`
    * This will take individual .nc files, and merge them into longitudinal strips of 3 lons per strip
@@ -47,3 +48,58 @@ The MRNBC stitching scripts perform two main functions: convert the text files i
    * The .nc files up until this point contain multiple variables
    * This job will output one .nc file per variable for the model/rcp
    * Modify `stitch_final.pbs` for the desired model/rcp, then submit the job
+
+
+
+# After Stitching
+After `stitch_final`, there are further postprocessing steps to perform:
+* Despeckling
+* Transform Winds
+* Compliance Checker
+The scripts/jobs for these are located in other repos
+
+## Despeckling
+MRNBC outputs for pr and tasmin for RCP45/RCP85 exhibit "speckling"; some small percentage of grid cells (spread out over the entire domain with no discernable pattern) are set at the maximum allowable MRNBC output value. This is likely an artifact of how MRNBC is being compiled or run.
+
+Despeckling removes these cells and fills them back in with interpolated values from surrounding cells.
+
+The scripts can be found in `mrnbc-despeckle` repo.
+
+## Despeckling Also Fills In Missing Cells
+In addition to "speckled" cells, there are some percentage of missing cells. These occur outside of land for the most part, and a small number of missing cells are over land.
+
+Unlike "speckled" cells however, missing cells appear to affect all variables and RCPs to varying degrees.
+
+The despeckling process, due to how it works, also fills in these missing cells. 
+
+Therefore, the despeckling PBS job can be run on all MRNBC stitched files.
+
+## Wind Transform
+`sfcWind` is at a height at 10m when output from MRNBC. To convert from 10m to 2m, use the scripts found in `transform-wind-grids` repo.
+
+An important thing to note is that **these scripts were not made specifically for MRNBC or even Hydro Projections**, and there is no concept of a GCM or RCP. Therefore, the PBS jobs need more inputs specified than most other scripts and PBS jobs designed for Hydro Projections. In particular, pay attention to the start and end years, and input/output paths.
+
+There are some further complications with how the Wind Transform scripts work:
+* Assumes data is indexed such that latitude is oriented North to South
+  * But the stitching process produces data that is oriented South to North
+* Wind Transform script uses the variable name as the output filename regardless of the input filename
+* Wind Transform script outputs one file per year, regardless of how many years are in input file
+  * This is not necessarily a problem in and of itself, but the next step after Wind Transform, Compliance Checker for MRNBC, has not been setup to handle multiple input files and only deals with one input file per job
+
+This means that to Wind Transform for a single MRNBC sfcWind file, 3 PBS jobs need to be run:
+* Invert latitude
+* Run actual Wind Transform
+* Merge yearly outputs back into a single file
+
+## Compliance Checker
+The final step is Compliance Checker, which will standardise the metadata. The Compliance Checker for MRNBC also applies the AWAP mask.
+
+The scripts can be found in `compliance_checking` repo.
+
+Compliance Checker is a two part process:
+* Run `run_cc_hydroproj_mrnbc.sh`
+  * Submits multiple jobs, one per GCM/RCP/variable combo
+* Run `run_merge_hydroproj.sh`
+  * Submits multiple jobs, one per GCM/RCP/variable combo
+
+In both cases, check that the variables named `variables`, `rcps`, and `gcm` are properly set for MRNBC and which variables/RCPs to run for. By default, they are setup to run for all variables.
