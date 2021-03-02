@@ -32,6 +32,10 @@ for time_slice in ${time_slices[@]}; do
     done
 
     rm ${find_results_file}
+
+    if [ "${period}" = "bc_cur" ]; then
+        break
+    fi
 done
 
 echo "Done"
