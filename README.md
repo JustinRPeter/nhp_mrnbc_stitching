@@ -13,12 +13,13 @@ For example, `bc_fut_350_12.dat`.
 
 `period` can be one of two values, `bc_fut` for RCP45/RCP85, or `bc_cur` for historical.
 
-`lonIndex` and `latIndex` in the filename refer to lon/lat indicies, relative to the starting lat/lon. For HydroProjections, there are 841 longitudes, and 681 latitudes. The starting lon is 112.00, and the starting lat is -10.00. Grid resolution is 5km (or 0.05). Indicies advance such that:
+`lonIndex` and `latIndex` in the filename refer to lon/lat indices, relative to the starting lat/lon. For HydroProjections, there are 841 longitudes, and 681 latitudes. The starting lon is 112.00, and the starting lat is -10.00. Grid resolution is 5km (or 0.05). Indices advance such that:
 * lon index 0 = 112.00
 * lon index 840 = 154.00
 * lat index 0 = -10.00
 * lat index 680 = -44.00
-That is, indicies advance from "top left to bottom right".
+
+That is, indices advance from "top left to bottom right".
 
 MRNBC is run such that the historical period (`bc_cur`) is exported at the same time as rcp85, and thus is written to the same folder containing `bc_fut` files.
 
