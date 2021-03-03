@@ -5,7 +5,7 @@
 # lat values for those lons.
 # Multiple jobs are submitted for one gcm/rcp, with each job repsonsible for
 # a range of lon triplets.
-# Use SKIP for a value in lon_triplet_start_indicies to skip that lon group.
+# Use SKIP for a value in lon_triplet_start_indices to skip that lon group.
 # This can be useful for when one of the lon group jobs fails, and you want
 # to run just that group again, whilst preserving the group number in the job logs.
 # Sometimes, one lon group will hang and the job will be killed when it
@@ -18,15 +18,15 @@ rcps=(historical rcp45 rcp85)
 
 
 template_file=stitch_cells_into_lons.template
-lon_triplet_start_indicies=(0 50 100 150 200 250)
-lon_triplet_end_indicies=(49 99 149 199 249 280)
+lon_triplet_start_indices=(0 50 100 150 200 250)
+lon_triplet_end_indices=(49 99 149 199 249 280)
 num_lon_triplet_groups=6
 
 for gcm in ${gcms[@]}; do
     for rcp in ${rcps[@]}; do
         for ((lon_group=0;lon_group<${num_lon_triplet_groups};lon_group++)); do
-            lon_start_group=${lon_triplet_start_indicies[$lon_group]}
-            lon_end_group=${lon_triplet_end_indicies[$lon_group]}
+            lon_start_group=${lon_triplet_start_indices[$lon_group]}
+            lon_end_group=${lon_triplet_end_indices[$lon_group]}
 
             if [ "${lon_start_group}" = "SKIP" ]; then
                 echo "Skipping ${gcm} ${rcp} lon group ${lon_group}"
